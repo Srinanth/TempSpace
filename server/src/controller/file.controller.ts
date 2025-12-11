@@ -19,7 +19,7 @@ export const getUploadUrl = async (req: Request, res: Response) => {
     // Create Signed Upload URL
     const { data, error } = await supabase
       .storage
-      .from('tempspace_files')
+      .from('TempSpace')
       .createSignedUploadUrl(storagePath);
 
     if (error) throw error;
