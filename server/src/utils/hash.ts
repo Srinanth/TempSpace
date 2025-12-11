@@ -1,11 +1,5 @@
-import bcrypt from "bcrypt";
+import crypto from 'crypto';
 
-const salting = 12;
-
-export async function hash(value: string): Promise<string> {
-  return bcrypt.hash(value, salting);
-}
-
-export async function verify(hashed: string, plain: string): Promise<boolean> {
-  return bcrypt.compare(plain, hashed);
-}
+export const hashToken = (token: string): string => {
+  return crypto.createHash('sha256').update(token).digest('hex');
+};
