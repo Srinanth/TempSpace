@@ -1,13 +1,13 @@
-import { Router } from "express";
-// import * as SpaceController from "../controllers/space.controller";
-// import { validate } from "../middleware/validate";
-// import { createSpaceSchema } from "../schemas/space.schema";
+import { Router } from 'express';
+import { createSpace, getSpace, deleteSpace } from '../controller/space.controller.js';
+import { requirePerms } from '../middleware/perms.js';
+import { Perms } from '../types/perms.js';
 
 const router = Router();
 
-// router.post("/", validate(createSpaceSchema), SpaceController.createSpace);
-// router.get("/:spaceId", SpaceController.getSpace);
-// router.patch("/:spaceId", SpaceController.updateSpace);
-// router.delete("/:spaceId", SpaceController.deleteSpace);
+router.post('/', createSpace);
+
+router.get('/', requirePerms(Perms.READ), getSpace);
+router.delete('/', requirePerms(Perms.CONFIG), deleteSpace);
 
 export default router;

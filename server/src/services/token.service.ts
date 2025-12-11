@@ -1,7 +1,7 @@
-import { supabase } from '../config/SupabaseClient';
-import { generateRandomToken } from '../utils/generateToken';
-import { hashToken } from '../utils/hash';
-import { TokenType, Perms } from '../types/perms';
+import { supabase } from '../config/SupabaseClient.js';
+import { generateRandomToken } from '../utils/generateToken.js';
+import { hashToken } from '../utils/hash.js';
+import { TokenType, Perms } from '../types/perms.js';
 
 export class TokenService {
   async createSpaceTokens(spaceId: string) {

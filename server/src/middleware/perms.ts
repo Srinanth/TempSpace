@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { TokenService } from '../services/token.service';
-import { Perms } from '../types/perms';
+import { TokenService } from '../services/token.service.js';
+import { Perms } from '../types/perms.js';
 
 const tokenService = new TokenService();
 

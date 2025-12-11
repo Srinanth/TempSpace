@@ -1,7 +1,7 @@
-import { supabase } from '../config/SupabaseClient';
-import { TokenService } from './token.service';
-import { hashToken } from '../utils/hash';
-import { SpaceSettings } from '../types/space';
+import { supabase } from '../config/SupabaseClient.js';
+import { TokenService } from './token.service.js';
+import { hashToken } from '../utils/hash.js';
+import { SpaceSettings } from '../types/space.js';
 
 const tokenService = new TokenService();
 

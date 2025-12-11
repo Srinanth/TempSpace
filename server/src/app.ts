@@ -1,21 +1,19 @@
-import express from "express";
-import cors from "cors";
-// import spaceRoutes from "./routes/space.routes";
-// import deviceMiddleware from "./middleware/device";
+import express from 'express';
+import cors from 'cors';
+import spaceRoutes from './routes/space.routes.js';
+import fileRoutes from './routes/file.routes.js';
 
 const app = express();
 
-// middlewares
 app.use(cors());
 app.use(express.json());
-// app.use(deviceMiddleware);
 
 // Routes
-// app.use("/spaces", spaceRoutes);
+app.use('/api/spaces', spaceRoutes);
+app.use('/api/files', fileRoutes);
 
-
-app.use((_req, res) => {
-  res.status(404).json({ error: "Not Found" });
+app.get('/', (_req, res) => {
+  res.send('TempSpace API is running');
 });
 
 export default app;
