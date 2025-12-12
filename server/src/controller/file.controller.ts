@@ -71,3 +71,46 @@ export const listFiles = async (req: Request, res: Response) => {
         res.status(500).json({error: err.message});
     }
 }
+
+export const downloadFile = async (req: Request, res: Response) => {
+  try {
+    const spaceId = req.currentSpace!.id;
+    const fileId = req.params.fileId;
+
+    const { data: space } = await supabase
+      .from('spaces')
+      .select('settings')
+      .eq('id', spaceId)
+      .single();
+
+    if (!space || space.settings?.download_allowed === false) {
+      return res.status(403).json({ error: 'Downloads are disabled for this space' });
+    }
+
+    const { data: file } = await supabase
+      .from('files')
+      .select('storage_path, filename')
+      .eq('id', fileId)
+      .eq('space_id', spaceId)
+      .single();
+
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    const { data: signedData, error } = await supabase
+      .storage
+      .from('TempSpace')
+      .createSignedUrl(file.storage_path, 3600, {
+        download: file.filename
+      });
+
+    if (error) throw error;
+    await supabase.rpc('increment_download_count', { row_id: fileId });
+
+    res.json({ downloadUrl: signedData.signedUrl, filename: file.filename });
+
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
