@@ -1,14 +1,6 @@
-export const storageConfig = {
-  maxFileSizeMB: 50,
-  allowedMimeTypes: [
-    "image/png",
-    "image/jpeg",
-    "application/pdf",
-    "text/plain",
-    "application/zip"
-  ],
-
-  tempUploadDir: "tmp/uploads",
-  spaceMaxFiles: 20,
-  spaceMaxTotalSizeMB: 200
+export const STORAGE_CONFIG = {
+  BUCKET_NAME: 'TempSpace',
+  MAX_FILE_SIZE: 50 * 1024 * 1024, 
+  MAX_FILES_PER_SPACE: 20,
+  URL_EXPIRY: 3600,
 };
