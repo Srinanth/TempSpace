@@ -2,9 +2,10 @@ import { supabase } from '../config/SupabaseClient.js';
 import { generateRandomToken } from '../utils/generateToken.js';
 import { hashToken } from '../utils/hash.js';
 import { TokenType, Perms } from '../types/perms.js';
+import { TokenResponse } from '../types/tokens.js';
 
 export class TokenService {
-  async createSpaceTokens(spaceId: string) {
+  async createSpaceTokens(spaceId: string): Promise<TokenResponse> {
     const adminRaw = generateRandomToken();
     const uploaderRaw = generateRandomToken();
     const viewerRaw = generateRandomToken();

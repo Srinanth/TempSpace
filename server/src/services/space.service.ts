@@ -2,6 +2,7 @@ import { supabase } from '../config/SupabaseClient.js';
 import { TokenService } from './token.service.js';
 import { hashToken } from '../utils/hash.js';
 import { SpaceSettings } from '../types/space.js';
+import { generateRandomToken } from '../utils/generateToken.js';
 
 const tokenService = new TokenService();
 
@@ -72,4 +73,29 @@ export class SpaceService {
     
     return true;
   }
+  async createShareLink(spaceId: string) {
+    const { data: current } = await supabase
+      .from('spaces')
+      .select('public_id')
+      .eq('id', spaceId)
+      .single();
+
+    if (current?.public_id) {
+        return current.public_id;
+    }
+
+    const publicId = generateRandomToken(10); 
+
+    // 3. Save to DB
+    const { error } = await supabase
+      .from('spaces')
+      .update({ public_id: publicId })
+      .eq('id', spaceId);
+
+    if (error) throw error;
+    
+    return publicId;
+  }
+
 }
+
