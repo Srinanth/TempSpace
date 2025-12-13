@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createSpace, getSpace, deleteSpace, updateSettings,createPublicLink } from '../controller/space.controller.js';
+import { createSpace, getSpace, deleteSpace, updateSettings,createPublicLink, joinSpace } from '../controller/space.controller.js';
 import { requirePerms } from '../middleware/perms.js';
 import { Perms } from '../types/perms.js';
 import { createSpaceLimiter } from '../config/ratelimiter.js';
@@ -14,5 +14,6 @@ router.get('/', requirePerms(Perms.READ), getSpace);
 router.delete('/', requirePerms(Perms.CONFIG), deleteSpace);
 router.patch('/',requirePerms(Perms.CONFIG),validate(updateSettingsSchema),updateSettings);
 router.post('/share', requirePerms(Perms.CONFIG), createPublicLink);
+router.post('/join', joinSpace);
 
 export default router;
