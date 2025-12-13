@@ -1,107 +1,95 @@
-import { supabase } from '../config/SupabaseClient.js'; // Adjust path/extension if needed
-import { STORAGE_CONFIG } from '../config/storage.js'; // Assumes you created this in the audit step
+import { FileRepository } from '../db/file.db.js';
+import { SpaceRepository } from '../db/space.db.js';
+import { STORAGE_CONFIG } from '../config/storage.js';
 import { File } from '../types/file.js';
+
+const fileRepo = new FileRepository();
+const spaceRepo = new SpaceRepository();
+
 export class FileService {
   
-  async generateUploadUrl(spaceId: string, filename: string, sizeBytes: number) {
-    const { data: space } = await supabase
-      .from('spaces')
-      .select('file_count')
-      .eq('id', spaceId)
-      .single();
+  async uploadFile(spaceId: string, file: Express.Multer.File): Promise<File> {
+    const space = await spaceRepo.getUsage(spaceId);
+    if (!space) throw new Error('Space not found');
 
-    if (!space || space.file_count >= STORAGE_CONFIG.MAX_FILES_PER_SPACE) {
-      throw new Error('File limit reached (Max 20)');
+    const currentSize = space.total_size_bytes || 0;
+    const newSize = currentSize + file.size;
+
+    if (newSize > STORAGE_CONFIG.MAX_SPACE_SIZE) {
+      const remaining = (STORAGE_CONFIG.MAX_SPACE_SIZE - currentSize) / (1024 * 1024);
+      throw new Error(`Space full! You have ${remaining.toFixed(2)} MB left.`);
     }
 
-    if (sizeBytes > STORAGE_CONFIG.MAX_FILE_SIZE) {
-      throw new Error('File too large (Max 50MB)');
-    }
+    const cleanFilename = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const storagePath = `${spaceId}/${Date.now()}_${cleanFilename}`; 
+    const uploadData = await fileRepo.upload(storagePath, file.buffer, file.mimetype);
 
-    const storagePath = `${spaceId}/${Date.now()}_${filename}`;
-
-    const { data, error } = await supabase.storage
-      .from(STORAGE_CONFIG.BUCKET_NAME)
-      .createSignedUploadUrl(storagePath);
-
-    if (error) throw error;
-
-    return { 
-      uploadUrl: data.signedUrl, 
-      path: data.path,
-      token: data.token 
-    };
+    return await this.saveFileRecord(spaceId, {
+      filename: file.originalname,
+      storagePath: uploadData.path,
+      sizeBytes: file.size,
+      mimeType: file.mimetype
+    });
   }
 
-
-  async saveFileRecord(spaceId: string, meta: { filename: string, storagePath: string, sizeBytes: number, mimeType: string }) {
-    const { data, error } = await supabase.from('files').insert({
+  async saveFileRecord(spaceId: string, meta: { filename: string, storagePath: string, sizeBytes: number, mimeType: string }): Promise<File> {
+    const file = await fileRepo.create({
       space_id: spaceId,
       filename: meta.filename,
       storage_path: meta.storagePath,
       size_bytes: meta.sizeBytes,
       mime_type: meta.mimeType
-    }).select().single();
-
-    if (error) throw error;
-
-    await supabase.rpc('increment_space_usage', { 
-        row_id: spaceId, 
-        size_inc: meta.sizeBytes, 
-        count_inc: 1 
     });
 
-    return data as File;
+    await fileRepo.incrementSpaceUsage(spaceId, meta.sizeBytes);
+    return file; 
   }
 
-
-  async listFiles(spaceId: string) {
-    const { data, error } = await supabase
-      .from('files')
-      .select('*')
-      .eq('space_id', spaceId);
-      
-    if (error) throw error;
-    return data as File[];
+  async listFiles(spaceId: string): Promise<File[]> {
+    return await fileRepo.findBySpaceId(spaceId);
   }
 
+  async deleteFile(spaceId: string, fileId: string) {
+    const file = await fileRepo.findById(fileId, spaceId);
+    if (!file) throw new Error('File not found');
+    
+    await fileRepo.deleteFromStorage(file.storage_path);
+    await fileRepo.delete(fileId);
+    await fileRepo.decrementSpaceUsage(spaceId, file.size_bytes);
+    return true;
+  }
 
-  async generateDownloadLink(spaceId: string, fileId: string) {
-    const { data: space } = await supabase
-      .from('spaces')
-      .select('settings')
-      .eq('id', spaceId)
-      .single();
+  async generatePreviewLink(spaceId: string, fileId: string) {
+    const file = await fileRepo.findById(fileId, spaceId);
+    if (!file) throw new Error('File not found');
 
-    if (!space || space.settings?.download_allowed === false) {
-      const error: any = new Error('Downloads are disabled for this space');
-      error.status = 403;
-      throw error;
+    const signedData = await fileRepo.createSignedPreviewUrl(file.storage_path);
+
+    return { 
+      previewUrl: signedData.signedUrl, 
+      filename: file.filename, 
+      mimeType: file.mime_type 
+    };
+  }
+
+  async getFileStream(spaceId: string, fileId: string) {
+    const space = await spaceRepo.getUsage(spaceId);
+    
+    if (!space || (space.settings && space.settings.download_allowed === false)) {
+      throw new Error('Downloads are currently LOCKED by the host.');
     }
 
-    const { data: file } = await supabase
-      .from('files')
-      .select('storage_path, filename')
-      .eq('id', fileId)
-      .eq('space_id', spaceId)
-      .single();
+    const file = await fileRepo.findById(fileId, spaceId);
+    if (!file) throw new Error('File not found');
 
-    if (!file) {
-      const error: any = new Error('File not found');
-      error.status = 404;
-      throw error;
-    }
+    const fileBlob = await fileRepo.downloadStream(file.storage_path);
+    await fileRepo.incrementDownloadCount(fileId);
 
-    const { data: signedData, error } = await supabase.storage
-      .from(STORAGE_CONFIG.BUCKET_NAME)
-      .createSignedUrl(file.storage_path, STORAGE_CONFIG.URL_EXPIRY, { 
-        download: file.filename 
-      });
-
-    if (error) throw error;
-
-    await supabase.rpc('increment_download_count', { row_id: fileId });
-
-    return { downloadUrl: signedData.signedUrl, filename: file.filename };
+    return { 
+      stream: fileBlob.stream(), 
+      filename: file.filename, 
+      mimeType: file.mime_type, 
+      size: file.size_bytes 
+    };
   }
 }

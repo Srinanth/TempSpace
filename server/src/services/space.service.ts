@@ -1,9 +1,12 @@
-import { supabase } from '../config/SupabaseClient.js';
+import { SpaceRepository } from '../db/space.db.js';
 import { TokenService } from './token.service.js';
 import { hashToken } from '../utils/hash.js';
 import { SpaceSettings } from '../types/space.js';
 import { generateRandomToken } from '../utils/generateToken.js';
+import { Perms } from '../types/perms.js';
+import { generateToken } from '../utils/jwt.js';
 
+const spaceRepo = new SpaceRepository();
 const tokenService = new TokenService();
 
 export class SpaceService {
@@ -11,11 +14,7 @@ export class SpaceService {
   async createAnonymousSpace(deviceIp: string) {
     const ipHash = hashToken(deviceIp);
 
-    const { data: existingSpace } = await supabase
-      .from('spaces')
-      .select('id, expires_at')
-      .eq('creator_ip_hash', ipHash)
-      .maybeSingle();
+    const existingSpace = await spaceRepo.findByIpHash(ipHash);
 
     if (existingSpace) {
         const now = new Date();
@@ -24,14 +23,12 @@ export class SpaceService {
         if (expiresAt > now) {
             throw new Error('You already have an active space. Delete it first.');
         } else {
-            console.log(`[Lazy Cleanup] Removing expired space ${existingSpace.id} for returning user.`);
+            console.log(`Removing expired space ${existingSpace.id}`);
             await this.deleteSpace(existingSpace.id);
         }
     }
 
-    const { data: space, error } = await supabase
-      .from('spaces')
-      .insert({
+    const space = await spaceRepo.create({
         creator_ip_hash: ipHash,
         expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
         settings: {
@@ -39,11 +36,7 @@ export class SpaceService {
             password_protected: false, 
             download_allowed: true 
         } as SpaceSettings
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+    });
 
     const tokens = await tokenService.createSpaceTokens(space.id);
 
@@ -51,51 +44,45 @@ export class SpaceService {
   }
 
   async getSpaceDetails(spaceId: string) {
-    const { data, error } = await supabase
-      .from('spaces')
-      .select('*')
-      .eq('id', spaceId)
-      .single();
-    
-    if (error) throw error;
-    return data;
+    return await spaceRepo.findById(spaceId);
   }
 
   async deleteSpace(spaceId: string) {
-    const { data: files } = await supabase.from('files').select('storage_path').eq('space_id', spaceId);
-    
-    if (files && files.length > 0) {
-      const paths = files.map(f => f.storage_path);
-      await supabase.storage.from('tempspace_files').remove(paths);
+    const paths = await spaceRepo.getFilePaths(spaceId);
+    if (paths.length > 0) {
+      await spaceRepo.deleteFilesFromStorage(paths);
     }
-    const { error } = await supabase.from('spaces').delete().eq('id', spaceId);
-    if (error) throw error;
-    
-    return true;
+    return await spaceRepo.delete(spaceId);
   }
-  async createShareLink(spaceId: string) {
-    const { data: current } = await supabase
-      .from('spaces')
-      .select('public_id')
-      .eq('id', spaceId)
-      .single();
 
-    if (current?.public_id) {
-        return current.public_id;
-    }
+  async createShareLink(spaceId: string) {
+    const currentPublicId = await spaceRepo.getPublicId(spaceId);
+    if (currentPublicId) return currentPublicId;
 
     const publicId = generateRandomToken(10); 
 
-    // 3. Save to DB
-    const { error } = await supabase
-      .from('spaces')
-      .update({ public_id: publicId })
-      .eq('id', spaceId);
-
-    if (error) throw error;
+    await spaceRepo.updatePublicId(spaceId, publicId);
     
     return publicId;
   }
 
-}
+  async exchangeShareCode(code: string) {
+    const space = await spaceRepo.findByShareCode(code);
+    if (!space) throw new Error('Invalid Code');
+    if (new Date(space.expires_at) < new Date()) throw new Error('Space Expired');
 
+    const tokens = {
+      uploader: generateToken({ 
+          spaceId: space.id, 
+          type: 'UPLOADER', 
+          capabilities: [Perms.READ, Perms.UPLOAD] 
+      }),
+      viewer: generateToken({ 
+          spaceId: space.id, 
+          type: 'VIEWER', 
+          capabilities: [Perms.READ] 
+      }),
+    };
+    return { space, tokens };
+  }
+}
