@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { SpaceService } from '../services/space.service.js';
 import { SpaceSettings } from '../types/space.js';
 import { supabase } from '../config/SupabaseClient.js';
@@ -85,4 +85,12 @@ export const createPublicLink = async (req: Request, res: Response) => {
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
+};
+
+export const joinSpace = async (req: Request, res: Response, next:NextFunction) => {
+  try {
+    const { code } = req.body;
+    const result = await spaceService.exchangeShareCode(code);
+    res.json(result);
+  } catch (error) { next(error); }
 };
