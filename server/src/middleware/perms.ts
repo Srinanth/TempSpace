@@ -34,28 +34,26 @@ export const requirePerms = (requiredCap: Perms) => {
       const authHeader = req.headers.authorization;
       const publicIdHeader = req.headers['x-public-id'] as string;
 
-      // Admin/Uploader/viewer
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const rawToken = authHeader.split(' ')[1];
         if (!rawToken) return res.status(401).json({ error: 'Malformed token' });
 
-        const tokenData = await tokenService.verifyToken(rawToken);
-        if (!tokenData) return res.status(403).json({ error: 'Invalid token' });
+        const payload = await tokenService.verifyToken(rawToken);
+        
+        if (!payload) return res.status(403).json({ error: 'Invalid or expired token' });
 
-        const capabilities = tokenService.getCapabilities(tokenData.type);
-        if (!capabilities.includes(requiredCap)) {
+        if (!payload.capabilities.includes(requiredCap)) {
             return res.status(403).json({ error: 'Insufficient permissions' });
         }
 
         req.currentSpace = {
-          id: tokenData.spaceId,
-          capabilities,
-          tokenType: tokenData.type
+          id: payload.spaceId,
+          capabilities: payload.capabilities,
+          tokenType: payload.type
         };
         return next();
       }
 
-      // viewer
       else if (publicIdHeader) {
         if (requiredCap !== Perms.READ) {
             return res.status(403).json({ error: 'Public links are Read-Only' });
