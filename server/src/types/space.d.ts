@@ -7,10 +7,11 @@ export interface SpaceSettings {
 export interface Space {
   id: string;
   owner_id?: string | null;
+  creator_ip_hash: string;
   name?: string;
   settings: SpaceSettings;
   total_size_bytes: number;
   file_count: number;
-  expires_at: Date;
-  created_at: Date;
+  expires_at: string;
+  created_at: string;
 }
