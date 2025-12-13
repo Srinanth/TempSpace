@@ -8,6 +8,7 @@ export interface Space {
   id: string;
   owner_id?: string | null;
   creator_ip_hash: string;
+  share_code: string;
   name?: string;
   settings: SpaceSettings;
   total_size_bytes: number;
