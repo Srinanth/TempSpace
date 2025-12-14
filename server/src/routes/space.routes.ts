@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { createSpace, getSpace, deleteSpace, updateSettings,createPublicLink, joinSpace } from '../controller/space.controller.js';
+import { createSpace, getSpace, deleteSpace, updateSettings,createPublicLink, joinSpace, unlockSpaceProxy } from '../controller/space.controller.js';
 import { requirePerms } from '../middleware/perms.js';
 import { Perms } from '../types/perms.js';
 import { createSpaceLimiter } from '../config/ratelimiter.js';
 import { validate } from '../middleware/validate.js';
-import { joinSpaceSchema, updateSettingsSchema } from '../schema/space.schema.js';
+import { joinSpaceSchema, unlockSpaceSchema, updateSettingsSchema } from '../schema/space.schema.js';
 
 const router = Router();
 
@@ -15,5 +15,5 @@ router.delete('/', requirePerms(Perms.CONFIG), deleteSpace);
 router.patch('/',requirePerms(Perms.CONFIG),validate(updateSettingsSchema),updateSettings);
 router.post('/share', requirePerms(Perms.CONFIG), createPublicLink);
 router.post('/join',validate(joinSpaceSchema), joinSpace);
-
+router.post('/unlock', validate(unlockSpaceSchema), unlockSpaceProxy);
 export default router;  
