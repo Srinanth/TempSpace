@@ -13,7 +13,6 @@ export class SpaceService {
   
   async createAnonymousSpace(deviceIp: string) {
     const ipHash = hashToken(deviceIp);
-
     const existingSpace = await spaceRepo.findByIpHash(ipHash);
 
     if (existingSpace) {
@@ -58,9 +57,8 @@ export class SpaceService {
   async createShareLink(spaceId: string) {
     const currentPublicId = await spaceRepo.getPublicId(spaceId);
     if (currentPublicId) return currentPublicId;
-
+    
     const publicId = generateRandomToken(10); 
-
     await spaceRepo.updatePublicId(spaceId, publicId);
     
     return publicId;
@@ -84,5 +82,19 @@ export class SpaceService {
       }),
     };
     return { space, tokens };
+  }
+
+async updateSpaceSettings(spaceId: string, updates: Partial<SpaceSettings>) {
+    const currentSettings = await spaceRepo.getSettings(spaceId);
+    
+    if (!currentSettings) throw new Error('Space not found');
+
+    const newSettings: SpaceSettings = {
+      public_upload: updates.public_upload ?? currentSettings.public_upload,
+      download_allowed: updates.download_allowed ?? currentSettings.download_allowed, 
+      password_protected: updates.password_protected ?? currentSettings.password_protected,
+    };
+
+    return await spaceRepo.updateSettings(spaceId, newSettings);
   }
 }
