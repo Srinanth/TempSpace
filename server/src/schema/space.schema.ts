@@ -8,6 +8,8 @@ export const updateSettingsSchema = z.object({
   }).strict(),
 });
 
-export const shareLinkSchema = z.object({
-  body: z.object({}), 
+export const joinSpaceSchema = z.object({
+  body: z.object({
+    code: z.string().min(1).max(25),
+  }),
 });
