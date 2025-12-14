@@ -1,6 +1,6 @@
 import { supabase } from '../config/SupabaseClient.js';
 import { STORAGE_CONFIG } from '../config/storage.js';
-import { Space } from '../types/space.js'; 
+import { Space, SpaceSettings } from '../types/space.js'; 
 
 const generateCode = () => Math.random().toString(36).substring(2, 6).toUpperCase();
 
@@ -109,6 +109,29 @@ export class SpaceRepository {
 
     if (error) throw error;
     return data;
+  }
+
+  async getSettings(id: string) {
+    const { data, error } = await supabase
+      .from('spaces')
+      .select('settings')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data?.settings as SpaceSettings;
+  }
+
+  async updateSettings(id: string, settings: SpaceSettings) {
+    const { data, error } = await supabase
+      .from('spaces')
+      .update({ settings })
+      .eq('id', id)
+      .select('settings')
+      .single();
+
+    if (error) throw error;
+    return data.settings;
   }
 }
 
