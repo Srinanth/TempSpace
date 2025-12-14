@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import { SpaceService } from '../services/space.service.js';
-import { SpaceSettings } from '../types/space.js';
-import { supabase } from '../config/SupabaseClient.js';
 
 const spaceService = new SpaceService();
 
@@ -40,39 +38,14 @@ export const deleteSpace = async (req: Request, res: Response) => {
   }
 };
 
-export const updateSettings = async (req: Request, res: Response) => {
+export const updateSettings = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const spaceId = req.currentSpace!.id;
-    const { public_upload, download_allowed, password_protected } = req.body;
+    const newSettings = await spaceService.updateSpaceSettings(spaceId, req.body);
 
-    const { data: currentSpace } = await supabase
-      .from('spaces')
-      .select('settings')
-      .eq('id', spaceId)
-      .single();
-
-    if (!currentSpace) return res.status(404).json({ error: 'Space not found' });
-
-    const newSettings: SpaceSettings = {
-      ...currentSpace.settings,
-      ...(public_upload !== undefined && { public_upload }),
-      ...(download_allowed !== undefined && { download_allowed }),
-      ...(password_protected !== undefined && { password_protected }),
-    };
-
-    const { data, error } = await supabase
-      .from('spaces')
-      .update({ settings: newSettings })
-      .eq('id', spaceId)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    res.json({ message: 'Settings updated', settings: data.settings });
-
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.json({ message: 'Settings updated', settings: newSettings });
+  } catch (error) {
+    next(error);
   }
 };
 
