@@ -1,6 +1,9 @@
-export type TokenType = 'ADMIN' | 'UPLOADER' | 'VIEWER';
-export interface TokenResponse {
-  admin: string;
-  uploader: string;
-  viewer: string;
+export interface CreateSpaceResponse {
+  space: Space;
+  token: string;
+}
+
+export interface JoinSpaceResponse {
+  space: Space;
+  token: string;
 }

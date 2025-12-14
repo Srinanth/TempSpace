@@ -5,7 +5,7 @@ export enum Perms {
   CONFIG = 'CONFIG'
 }
 
-export type TokenType = 'ADMIN' | 'UPLOADER' | 'VIEWER';
+export type TokenType = 'ADMIN' |  'VIEWER';
 
 export interface TokenPayload {
   spaceId: string;
