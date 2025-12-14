@@ -67,3 +67,34 @@ export const joinSpace = async (req: Request, res: Response, next:NextFunction) 
     res.json(result);
   } catch (error) { next(error); }
 };
+
+export const joinSpaceProxy = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { code } = req.body;
+    const result = await spaceService.exchangeShareCode(code);
+    
+    res.json(result); 
+  } catch (error) { next(error); }
+};
+
+export const unlockSpaceProxy = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { spaceId, password } = req.body;
+    const result = await spaceService.verifySpacePassword(spaceId, password);
+    res.json(result);
+  } catch (error) { next(error); }
+};
+
+export const updateSettingsProxy = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+      const { password, ...settings } = req.body;
+      
+      await spaceService.updateSpaceSettings(
+          req.currentSpace!.id, 
+          settings, 
+          password
+      );
+      
+      res.json({ success: true });
+  } catch (err) { next(err); }
+}

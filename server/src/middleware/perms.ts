@@ -1,21 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { TokenService } from '../services/token.service.js';
+import { SpaceService } from '../services/space.service.js';
 import { Perms } from '../types/perms.js';
 import { supabase } from '../config/SupabaseClient.js';
 
 const tokenService = new TokenService();
+const spaceService = new SpaceService();
 
-declare global {
-  namespace Express {
-    interface Request {
-      currentSpace?: {
-        id: string;
-        capabilities: Perms[];
-        tokenType: string;
-      };
-    }
-  }
-}
 async function checkPublicAccess(publicId: string) {
     const { data } = await supabase
         .from('spaces')
@@ -39,19 +30,35 @@ export const requirePerms = (requiredCap: Perms) => {
         if (!rawToken) return res.status(401).json({ error: 'Malformed token' });
 
         const payload = await tokenService.verifyToken(rawToken);
-        
         if (!payload) return res.status(403).json({ error: 'Invalid or expired token' });
-
-        if (!payload.capabilities.includes(requiredCap)) {
-            return res.status(403).json({ error: 'Insufficient permissions' });
-        }
 
         req.currentSpace = {
           id: payload.spaceId,
           capabilities: payload.capabilities,
           tokenType: payload.type
         };
-        return next();
+
+        req.user = {
+          spaceId: payload.spaceId,
+          type: payload.type,
+          capabilities: payload.capabilities
+        };
+
+        if (payload.capabilities.includes(requiredCap)) {
+            return next();
+        }
+
+        if (requiredCap === Perms.UPLOAD) {
+            const settings = await spaceService.getSpaceSettings(payload.spaceId);
+            
+            if (settings.public_upload) {
+                return next();
+            } else {
+                return res.status(403).json({ error: 'Host has disabled uploads.' });
+            }
+        }
+
+        return res.status(403).json({ error: 'Insufficient permissions' });
       }
 
       else if (publicIdHeader) {
@@ -67,8 +74,15 @@ export const requirePerms = (requiredCap: Perms) => {
         req.currentSpace = {
             id: spaceId,
             capabilities: [Perms.READ],
-            tokenType: 'PUBLIC_LINK'
+            tokenType: 'VIEWER'
         };
+        
+        req.user = {
+            spaceId: spaceId,
+            type: 'VIEWER',
+            capabilities: [Perms.READ]
+        };
+
         return next();
       }
 

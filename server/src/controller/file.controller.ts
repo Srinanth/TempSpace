@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { FileService } from '../services/file.service.js';
+import { SpaceService } from '../services/space.service.js';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 
 const fileService = new FileService();
+const spaceService = new SpaceService();
 
 export const uploadFileProxy = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -11,7 +13,14 @@ export const uploadFileProxy = async (req: Request, res: Response, next: NextFun
       res.status(400).json({ error: 'No file uploaded' });
       return; 
     }
-
+    if (req.user?.type !== 'ADMIN') {
+       const settings = await spaceService.getSpaceSettings(req.currentSpace!.id);
+       
+       if (!settings.public_upload) {
+          res.status(403).json({ error: 'Host has disabled uploads.' });
+          return;
+       }
+    }
     const result = await fileService.uploadFile(req.currentSpace!.id, req.file);
     res.status(201).json(result);
   } catch (error) {
@@ -55,6 +64,10 @@ export const downloadFile = async (req: Request, res: Response, next: NextFuncti
 
 export const deleteFile = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (req.user?.type !== 'ADMIN') {
+        res.status(403).json({ error: 'Only the host can delete files.' });
+        return;
+    }
     const spaceId = req.currentSpace!.id;
     const fileId = req.params.fileId;
 

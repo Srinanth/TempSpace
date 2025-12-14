@@ -133,5 +133,13 @@ export class SpaceRepository {
     if (error) throw error;
     return data.settings;
   }
+
+  async updatePassword(spaceId: string, hash: string | null) {
+    const { error } = await supabase
+      .from('spaces')
+      .update({ password_hash: hash })
+      .eq('id', spaceId);
+    if (error) throw error;
+  }
 }
 
