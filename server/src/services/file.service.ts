@@ -2,33 +2,40 @@ import { FileRepository } from '../db/file.db.js';
 import { SpaceRepository } from '../db/space.db.js';
 import { STORAGE_CONFIG } from '../config/storage.js';
 import { File } from '../types/file.js';
+import { Readable } from 'stream';
 
 const fileRepo = new FileRepository();
 const spaceRepo = new SpaceRepository();
 
 export class FileService {
   
-  async uploadFile(spaceId: string, file: Express.Multer.File): Promise<File> {
+async uploadFileStream(
+      spaceId: string, 
+      fileStream: Readable, 
+      metadata: { filename: string; mimeType: string; sizeEstimate: number }
+  ) {
     const space = await spaceRepo.getUsage(spaceId);
     if (!space) throw new Error('Space not found');
 
     const currentSize = space.total_size_bytes || 0;
-    const newSize = currentSize + file.size;
+    const newSize = currentSize + metadata.sizeEstimate;
 
     if (newSize > STORAGE_CONFIG.MAX_SPACE_SIZE) {
       const remaining = (STORAGE_CONFIG.MAX_SPACE_SIZE - currentSize) / (1024 * 1024);
+      fileStream.resume(); 
       throw new Error(`Space full! You have ${remaining.toFixed(2)} MB left.`);
     }
 
-    const cleanFilename = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const cleanFilename = metadata.filename.replace(/[^a-zA-Z0-9.-]/g, '_');
     const storagePath = `${spaceId}/${Date.now()}_${cleanFilename}`; 
-    const uploadData = await fileRepo.upload(storagePath, file.buffer, file.mimetype);
+
+    const uploadData = await fileRepo.upload(storagePath, fileStream, metadata.mimeType);
 
     return await this.saveFileRecord(spaceId, {
-      filename: file.originalname,
+      filename: metadata.filename,
       storagePath: uploadData.path,
-      sizeBytes: file.size,
-      mimeType: file.mimetype
+      sizeBytes: metadata.sizeEstimate,
+      mimeType: metadata.mimeType
     });
   }
 

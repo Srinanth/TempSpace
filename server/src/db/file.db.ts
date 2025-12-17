@@ -1,6 +1,7 @@
 import { supabase } from '../config/SupabaseClient.js';
 import { STORAGE_CONFIG } from '../config/storage.js';
 import { File } from '../types/file.js';
+import { Readable } from 'stream';
 
 export class FileRepository {
 
@@ -106,12 +107,12 @@ export class FileRepository {
   return data;
  }
 
- async upload(storagePath: string, fileBuffer: Buffer, mimeType: string) {
+ async upload(storagePath: string, fileStream: Readable, mimeType: string) {
     const { data, error } = await supabase.storage
       .from(STORAGE_CONFIG.BUCKET_NAME)
-      .upload(storagePath, fileBuffer, {
+      .upload(storagePath, fileStream as any, {
         contentType: mimeType,
-        upsert: false
+        duplex: 'half'
       });
 
     if (error) throw error;

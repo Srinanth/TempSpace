@@ -3,26 +3,54 @@ import { FileService } from '../services/file.service.js';
 import { SpaceService } from '../services/space.service.js';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
+import busboy from 'busboy';
 
 const fileService = new FileService();
 const spaceService = new SpaceService();
 
 export const uploadFileProxy = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!req.file) {
-      res.status(400).json({ error: 'No file uploaded' });
-      return; 
-    }
     if (req.user?.type !== 'ADMIN') {
        const settings = await spaceService.getSpaceSettings(req.currentSpace!.id);
-       
        if (!settings.public_upload) {
-          res.status(403).json({ error: 'Host has disabled uploads.' });
-          return;
+          return res.status(403).json({ error: 'Host has disabled uploads.' });
        }
     }
-    const result = await fileService.uploadFile(req.currentSpace!.id, req.file);
+
+    const bb = busboy({ headers: req.headers });
+    const uploadPromise = new Promise((resolve, reject) => {
+        let fileUploaded = false;
+
+        bb.on('file', async (_name, fileStream, info) => {
+            fileUploaded = true;
+            const sizeHeader = req.headers['content-length'];
+            const sizeEstimate = sizeHeader ? parseInt(sizeHeader) : 0;
+
+            try {
+                const result = await fileService.uploadFileStream(
+                    req.currentSpace!.id, 
+                    fileStream, 
+                    {
+                        filename: info.filename,
+                        mimeType: info.mimeType,
+                        sizeEstimate
+                    }
+                );
+                resolve(result);
+            } catch (err) {
+                fileStream.resume();
+                reject(err);
+            }
+        });
+        bb.on('error', (err) => reject(err));
+        bb.on('close', () => {
+            if (!fileUploaded) reject(new Error('No file uploaded'));
+        });
+    });
+    req.pipe(bb);
+    const result = await uploadPromise;
     res.status(201).json(result);
+
   } catch (error) {
     next(error);
   }
