@@ -1,1 +1,29 @@
-@import "tailwindcss
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+  }
+
+  :root.dark {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+  }
+
+  body {
+    @apply bg-(--bg-primary) text-(--text-primary) transition-colors duration-300;
+  }
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { @apply bg-transparent; }
+::-webkit-scrollbar-thumb { 
+  @apply bg-slate-300 dark:bg-slate-700 rounded-full hover:bg-indigo-500 transition-colors; 
+}
