@@ -98,3 +98,14 @@ export const updateSettingsProxy = async (req: Request, res: Response, next: Nex
       res.json({ success: true });
   } catch (err) { next(err); }
 }
+
+export const trackVisit = async (req: Request, res: Response) => {
+  try {
+    const spaceId = req.currentSpace!.id;
+    await spaceService.trackVisit(spaceId);
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error(error);
+    res.json({ success: false });
+  }
+};

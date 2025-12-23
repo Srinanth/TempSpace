@@ -155,4 +155,11 @@ export class SpaceService {
     await spaceRepo.updatePublicId(spaceId, publicId);
     return publicId;
   }
+
+  async trackVisit(spaceId: string) {
+    spaceRepo.incrementVisitCount(spaceId).catch(err => {
+        console.error("Failed to track visit:", err);
+    });
+    return { success: true };
+  }
 }

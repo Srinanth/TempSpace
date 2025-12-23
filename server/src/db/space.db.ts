@@ -141,5 +141,20 @@ export class SpaceRepository {
       .eq('id', spaceId);
     if (error) throw error;
   }
-}
 
+  async incrementVisitCount(id: string) {
+    const { data, error } = await supabase
+      .from('spaces')
+      .select('visit_count')
+      .eq('id', id)
+      .single();
+      
+    if (error) return;
+    const newCount = (data?.visit_count || 0) + 1;
+    
+    await supabase
+      .from('spaces')
+      .update({ visit_count: newCount })
+      .eq('id', id);
+  }
+}
