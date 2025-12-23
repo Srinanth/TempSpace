@@ -83,10 +83,24 @@ export const downloadFile = async (req: Request, res: Response, next: NextFuncti
     res.setHeader('Content-Length', size);
     
     // @ts-ignore
-    await pipeline(Readable.fromWeb(stream), res);
-    
+    const nodeStream = Readable.fromWeb(stream);
+
+    try {
+        await pipeline(nodeStream, res);
+    } catch (err: any) {
+        if (err.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+            return;
+        }
+        throw err;
+    }
+
   } catch (error) {
-    next(error);
+    if (!res.headersSent) {
+        next(error);
+    } else {
+        console.error("Stream failed mid-download:", error);
+        res.end();
+    }
   }
 };
 
