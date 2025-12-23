@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createSpace, getSpace, deleteSpace, updateSettings,createPublicLink, joinSpace, unlockSpaceProxy, trackVisit } from '../controller/space.controller.js';
+import { createSpace, getSpace, deleteSpace, updateSettings,createPublicLink, joinSpace, unlockSpaceProxy, trackVisit, extendSpace, deleteFiles } from '../controller/space.controller.js';
 import { requirePerms } from '../middleware/perms.js';
 import { Perms } from '../types/perms.js';
 import { createSpaceLimiter } from '../config/ratelimiter.js';
@@ -17,4 +17,7 @@ router.post('/share', requirePerms(Perms.CONFIG), createPublicLink);
 router.post('/join',validate(joinSpaceSchema), joinSpace);
 router.post('/unlock', validate(unlockSpaceSchema), unlockSpaceProxy);
 router.post('/visit', requirePerms(Perms.READ), trackVisit);
+router.post('/extend', requirePerms(Perms.CONFIG), extendSpace);
+router.delete('/files', requirePerms(Perms.DELETE), deleteFiles);
+
 export default router;  

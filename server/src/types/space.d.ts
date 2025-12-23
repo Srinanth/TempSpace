@@ -5,6 +5,7 @@ export interface SpaceSettings {
 }
 
 export interface Space {
+  extend_count: number;
   id: string;
   creator_ip_hash: string;
   share_code: string;

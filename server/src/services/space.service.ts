@@ -162,4 +162,26 @@ export class SpaceService {
     });
     return { success: true };
   }
+
+  async extendExpiry(spaceId: string) {
+    const space = await spaceRepo.findById(spaceId);
+    
+    if (space.extend_count >= 3) {
+        throw new Error("Maximum extension limit (3) reached.");
+    }
+
+    const currentExpiry = new Date(space.expires_at);
+    const newExpiry = new Date(currentExpiry.getTime() + 24 * 60 * 60 * 1000);
+
+    await spaceRepo.updateExpiry(spaceId, newExpiry.toISOString());
+    return newExpiry;
+}
+
+async deleteAllFiles(spaceId: string) {
+    const paths = await spaceRepo.getFilePaths(spaceId);
+    if (paths.length > 0) {
+        await spaceRepo.deleteFilesFromStorage(paths);
+        await spaceRepo.deleteAllFilesFromDB(spaceId);
+    }
+}
 }

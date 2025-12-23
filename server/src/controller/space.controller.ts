@@ -109,3 +109,32 @@ export const trackVisit = async (req: Request, res: Response) => {
     res.json({ success: false });
   }
 };
+
+export const extendSpace = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const spaceId = req.currentSpace!.id;
+    const newExpiryDate = await spaceService.extendExpiry(spaceId);
+    
+    res.json({ 
+      success: true, 
+      message: 'Space extended by 24 hours',
+      expires_at: newExpiryDate 
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteFiles = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const spaceId = req.currentSpace!.id;
+    await spaceService.deleteAllFiles(spaceId);
+    
+    res.json({ 
+      success: true, 
+      message: 'All files have been permanently deleted' 
+    });
+  } catch (error) {
+    next(error);
+  }
+};

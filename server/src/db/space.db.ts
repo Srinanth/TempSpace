@@ -157,4 +157,29 @@ export class SpaceRepository {
       .update({ visit_count: newCount })
       .eq('id', id);
   }
+
+  async updateExpiry(id: string, newDate: string) {
+
+    const { data: current } = await supabase.from('spaces').select('extend_count').eq('id', id).single();
+    const newCount = (current?.extend_count || 0) + 1;
+
+    const { error } = await supabase
+      .from('spaces')
+      .update({ 
+        expires_at: newDate,
+        extend_count: newCount 
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+
+  async deleteAllFilesFromDB(spaceId: string) {
+    const { error } = await supabase
+      .from('files')
+      .delete()
+      .eq('space_id', spaceId);
+
+    if (error) throw error;
+  }
 }
