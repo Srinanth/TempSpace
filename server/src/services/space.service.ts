@@ -29,7 +29,7 @@ export class SpaceService {
 
     const space = await spaceRepo.create({
         creator_ip_hash: ipHash,
-        expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
         settings: {
             public_upload: false, 
             password_protected: false, 
