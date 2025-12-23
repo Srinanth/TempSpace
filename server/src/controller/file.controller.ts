@@ -73,15 +73,15 @@ export const downloadFile = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    const { stream, filename, mimeType, size } = await fileService.getFileStream(
+    const { stream, filename, mimeType } = await fileService.getFileStream(
       req.currentSpace!.id, 
       fileId
     );
 
     res.setHeader('Content-Type', mimeType || 'application/octet-stream');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Length', size);
-    
+    // res.setHeader('Content-Length', size);
+
     // @ts-ignore
     const nodeStream = Readable.fromWeb(stream);
 
