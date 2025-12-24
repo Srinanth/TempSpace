@@ -10,7 +10,7 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use(cors({
-  origin: 'https://tempspace.vercel.app/',
+  origin: 'https://tempspace.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-public-id'],
   exposedHeaders: ['x-public-id']
