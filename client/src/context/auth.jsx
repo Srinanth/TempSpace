@@ -1,69 +1,101 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { LogOut, CheckCircle } from 'lucide-react';
 import { spaceApi } from '../api/space.api';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
+
+const parseJwt = (token) => {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        return null;
+    }
+};
 
 export const Auth = ({ children }) => {
-  const [session, setSession] = useState(() =>
- ({
-    token: localStorage.getItem('ts_token'),
-    role: localStorage.getItem('ts_role'),
-    spaceCode: localStorage.getItem('ts_code')
-  }));
+  const [session, setSession] = useState(() => {
+    try {
+        const stored = localStorage.getItem('space_session');
+        return stored ? JSON.parse(stored) : { token: null, role: null, spaceCode: null };
+    } catch {
+        return { token: null, role: null, spaceCode: null };
+    }
+  });
 
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const validateSession = async () => {
       if (!session.token) {
-        setIsLoading(false);
-        return;
+          setIsLoading(false);
+          return;
+      }
+
+      const decoded = parseJwt(session.token);
+      if (decoded && session.role && decoded.role) {
+          if (session.role.toUpperCase() === 'ADMIN' && decoded.role.toUpperCase() !== 'ADMIN') {
+               console.warn("Role Mismatch Detected. Downgrading.");
+               const fixedSession = { ...session, role: decoded.role };
+               setSession(fixedSession);
+               localStorage.setItem('space_session', JSON.stringify(fixedSession));
+               setIsLoading(false);
+               return;
+          }
       }
 
       try {
         await spaceApi.getDetails(session.token);
       } catch (err) {
-        console.error("Session Validation Error:", err);
-        if (err.response && (err.response.status === 401 || err.response.status === 404)) {
-            logout();
-            toast.error("Space has expired.");
-        } 
+        if (err.response && (err.response.status === 401 || err.response.status === 403 || err.response.status === 404)) {
+            console.log("Session expired or invalid. Logging out.");
+            logout(false);
+        } else {
+            console.warn("Network error during validation. Keeping session.");
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     validateSession();
-  }, []); 
+  }, []);
 
   const login = (data) => {
-    const role = data.role || (data.token ? 'GUEST' : 'ADMIN');
-    const code = data.space?.share_code;
-
-    localStorage.setItem('ts_token', data.token);
-    localStorage.setItem('ts_role', role);
-    if(code) localStorage.setItem('ts_code', code);
+    const newSession = {
+      token: data.token,
+      role: data.role,
+      spaceCode: data.space?.share_code || session.spaceCode,
+      spaceId: data.space?.id || session.spaceId
+    };
     
-    setSession({ 
-        token: data.token, 
-        role, 
-        spaceCode: code 
+    setSession(newSession);
+    localStorage.setItem('space_session', JSON.stringify(newSession));
+    
+    toast.success(data.role === 'ADMIN' ? "Space Created!" : "Joined Space!", {
+        icon: <CheckCircle size={18} className="text-emerald-500" />
     });
-    
-    toast.success(role === 'ADMIN' ? "Space Created!" : "Joined Space!");
   };
 
-  const logout = () => {
-    localStorage.removeItem('ts_token');
-    localStorage.removeItem('ts_role');
-    localStorage.removeItem('ts_code');
+  const logout = (showToast = true) => {
     setSession({ token: null, role: null, spaceCode: null });
-    toast('Disconnected', { icon: '👋' });
+    localStorage.removeItem('space_session');
+    sessionStorage.clear(); 
+
+    if (showToast) {
+        toast("Disconnected", {
+            icon: <LogOut size={18} className="text-gray-500" />
+        });
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ session, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ session, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
