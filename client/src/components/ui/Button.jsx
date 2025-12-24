@@ -1,14 +1,17 @@
 const Button = ({ children, variant = 'primary', icon: Icon, className = '', ...props }) => {
   const variants = {
-    primary: 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30',
-    secondary: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700',
-    danger: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-500 hover:text-white dark:hover:bg-rose-600 transition-colors',
-    ghost: 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400',
+    primary: 'bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200',
+    
+    secondary: 'bg-white dark:bg-slate-900 border border-slate-300 dark:border-white/20 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5',
+    
+    danger: 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 hover:border-rose-300 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-900/50 dark:hover:bg-rose-900/40 transition-colors',
+    
+    ghost: 'hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-gray-400',
   };
   
   return (
     <button 
-      className={`px-4 py-2.5 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]} ${className}`} 
+      className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 ${variants[variant]} ${className}`} 
       {...props}
     >
       {Icon && <Icon size={18} />}
@@ -16,4 +19,5 @@ const Button = ({ children, variant = 'primary', icon: Icon, className = '', ...
     </button>
   );
 };
+
 export default Button;
