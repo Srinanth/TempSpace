@@ -36,5 +36,14 @@ export const filesApi = {
     document.body.appendChild(link);
     link.click();
     link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+
+  downloadBlob: async (token, fileId) => {
+    const response = await api.get(`/files/${fileId}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+    });
+    return response.data;
   }
 };

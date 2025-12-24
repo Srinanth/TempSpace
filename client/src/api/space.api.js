@@ -24,5 +24,24 @@ export const spaceApi = {
         headers: { Authorization: `Bearer ${token}` }
     });
     return data;
+  },
+  trackVisit: async (token) => {
+    return api.post('/spaces/visit', {}, { 
+        headers: { Authorization: `Bearer ${token}` } 
+    });
+  },
+  extendSpace: async (token) => {
+    const { data } = await api.post('/spaces/extend', {}, { 
+        headers: { Authorization: `Bearer ${token}` } 
+    });
+    return data;
+  },
+  deleteAllFiles: async (token) => {
+    return api.delete('/spaces/files', { headers: { Authorization: `Bearer ${token}` } });
+  },
+  deleteSpace: async (token) => {
+    return api.delete('/spaces', { 
+        headers: { Authorization: `Bearer ${token}` } 
+    });
   }
 };
