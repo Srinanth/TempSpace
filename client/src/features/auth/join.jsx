@@ -1,10 +1,10 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { Lock, FolderOpen, ArrowRight, ShieldCheck, Link as LinkIcon } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/input';
 import { useJoinSpace } from '../../hooks/useJoinSpace';
 
-const JoinSpaceForm = () => {
+const JoinSpaceForm = ({ initialCode }) => {
   const { 
     code, setCode, 
     loading, 
@@ -12,6 +12,12 @@ const JoinSpaceForm = () => {
     password, setPassword, 
     handleCreate, handleJoin, handleUnlock 
   } = useJoinSpace();
+
+  useEffect(() => {
+    if (initialCode) {
+      setCode(initialCode.toUpperCase());
+    }
+  }, [initialCode, setCode]);
 
   if (lockedData) {
     return (

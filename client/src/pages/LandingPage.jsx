@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Shield, Zap, Lock, ArrowRight, FileText, Cookie, Github } from 'lucide-react';
 import Layout from '../components/layout/layout';
 import JoinSpaceForm from '../features/auth/join';
 
 const LandingPage = () => {
-  const [showJoinForm, setShowJoinForm] = useState(false);
+  const { code } = useParams();
+  
+  const [showJoinForm, setShowJoinForm] = useState(!!code);
 
   if (showJoinForm) {
     return (
@@ -20,7 +23,7 @@ const LandingPage = () => {
            </div>
            
            <div className="w-full max-w-lg relative z-10">
-              <JoinSpaceForm />
+              <JoinSpaceForm initialCode={code} />
            </div>
         </div>
       </Layout>

@@ -18,8 +18,10 @@ export const useJoinSpace = () => {
     if (match && match[1]) {
         const foundCode = match[1].toUpperCase();
         setCode(foundCode);
-        handleJoin(foundCode);
+
         window.history.replaceState({}, document.title, "/");
+        
+        handleJoin(foundCode);
     }
   }, []);
 
@@ -29,9 +31,13 @@ export const useJoinSpace = () => {
         const data = await spaceApi.create();
         saveToHistory(data);
         login({ ...data, role: 'ADMIN' });
+        
+        setTimeout(() => window.location.reload(), 100);
+
     } catch(err) { 
         const errorMessage = err.response?.data?.error || 'Server unavailable';
-        toast.error(errorMessage);    }
+        toast.error(errorMessage);    
+    }
     setLoading(false);
   };
 
@@ -48,6 +54,9 @@ export const useJoinSpace = () => {
                 const spaceDetails = await spaceApi.getDetails(savedToken);
                 console.log("Restoring Admin Session...");
                 login({ token: savedToken, role: 'ADMIN', space: spaceDetails });
+                
+                setTimeout(() => window.location.reload(), 100);
+                
                 setLoading(false);
                 return;
             } catch (err) {
@@ -56,11 +65,14 @@ export const useJoinSpace = () => {
         }
 
         const data = await spaceApi.join(codeToUse);
+        
         if (data.locked) {
             setLockedData({ spaceId: data.space.id, code: codeToUse });
-            toast("Password Required");
+            toast("Password Required", { icon: '🔒' });
         } else {
             login({ ...data, role: 'GUEST' });
+            
+            setTimeout(() => window.location.reload(), 100);
         }
     } catch(err) { 
         toast.error(err.response?.data?.error || 'Space not found'); 
@@ -78,6 +90,9 @@ export const useJoinSpace = () => {
             space: data.space || { id: lockedData.spaceId, share_code: lockedData.code }
         });
         setLockedData(null); 
+        
+        setTimeout(() => window.location.reload(), 100);
+
     } catch(err) { 
         toast.error('Incorrect password'); 
     }

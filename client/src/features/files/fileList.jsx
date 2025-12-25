@@ -1,4 +1,4 @@
-import { FileText, Download, Trash2, FileArchive, Image, Video, Music, Code, Eye } from 'lucide-react';
+import { FileText, Download, Trash2, FileArchive, Image, Video, Music, Code } from 'lucide-react';
 import { useFileList } from '../../hooks/useFileList';
 import { formatBytes, formatDate } from '../../utils/file';
 import Button from '../../components/ui/Button';
@@ -37,7 +37,7 @@ const FileList = ({ refreshTrigger, onPreview }) => {
                         </div>
                         
                         <div className="flex-1 min-w-0 mr-4 cursor-pointer" onClick={() => isImage && onPreview(f)}>
-                            <p className={`font-semibold truncate mb-0.5 ${isImage ? 'text-slate-900 dark:text-white hover:underline' : 'text-slate-700 dark:text-gray-200'}`}>
+                            <p className={`font-semibold truncate mb-0.5 ${isImage ? 'text-slate-900 dark:text-white hover:underline decoration-indigo-500 underline-offset-2' : 'text-slate-700 dark:text-gray-200'}`}>
                                 {f.filename}
                             </p>
                             <p className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-2 font-medium">
@@ -51,10 +51,7 @@ const FileList = ({ refreshTrigger, onPreview }) => {
                            {formatBytes(f.size_bytes)}
                         </div>
                         
-                        <div className="flex gap-2">
-                            {isImage && (
-                                <Button variant="ghost" icon={Eye} onClick={() => onPreview(f)} className="p-2 text-slate-600 hover:bg-slate-200 dark:text-gray-400 dark:hover:bg-white/10" />
-                            )}
+                        <div className="flex gap-2">                            
                             <Button variant="ghost" icon={Download} onClick={() => handleDownload(f)} className="p-2 text-slate-600 hover:bg-slate-200 dark:text-gray-400 dark:hover:bg-white/10" />
                             
                             {isAdmin && (
