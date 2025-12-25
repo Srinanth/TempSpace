@@ -48,6 +48,7 @@ const App = () => (
       
       <Routes>
         <Route path="/" element={<HomeRoute />} />
+        <Route path="/join/:code" element={<LandingPage />} />
         <Route path="/security" element={<Security />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
