@@ -1,16 +1,20 @@
-# TempSpace
+<div align="center">
 
-![TempSpace Banner](/client/public/TempSpaceLogo.png)
+<img src="/client/public/TempSpaceLogo.png" alt="TempSpace Logo" width="180" />
 
-> **Share files instantly, without a trace.**  
-> A fast, privacy-focused, ephemeral file-sharing platform built for simplicity.
+# **TempSpace**
+
+**Share files instantly, without a trace.**  
+_A fast, privacy-focused, ephemeral file-sharing platform built for simplicity._
+
+<br/>
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/frontend-React_19-61DAFB.svg?logo=react)
 ![Tailwind](https://img.shields.io/badge/styling-Tailwind_CSS-38B2AC.svg?logo=tailwind-css)
 ![Status](https://img.shields.io/badge/status-Active-success.svg)
 
----
+</div>
 
 ## 📖 About
 
