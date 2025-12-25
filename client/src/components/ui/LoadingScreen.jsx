@@ -1,6 +1,23 @@
+import { useState, useEffect } from 'react';
 import { Rocket } from 'lucide-react';
 
 const LoadingScreen = ({ message = "Establishing Secure Connection..." }) => {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((oldProgress) => {
+        if (oldProgress >= 95) return 95;
+        
+        const remaining = 100 - oldProgress;
+        const jump = Math.random() * (remaining / 10);
+        return Math.min(oldProgress + jump, 95);
+      });
+    }, 500);
+
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="min-h-screen w-full bg-slate-50 dark:bg-[#020205] flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-500">
       
@@ -24,13 +41,21 @@ const LoadingScreen = ({ message = "Establishing Secure Connection..." }) => {
            </div>
         </div>
 
-        <div className="w-64 h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mb-4">
-           <div className="h-full bg-indigo-600 dark:bg-white animate-progress-indeterminate rounded-full"></div>
+        <div className="w-64 h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mb-2">
+           <div 
+             className="h-full bg-indigo-600 dark:bg-white rounded-full transition-all duration-300 ease-out"
+             style={{ width: `${progress}%` }}
+           ></div>
         </div>
 
-        <p className="text-sm font-bold text-slate-600 dark:text-gray-400 animate-pulse tracking-wide">
-           {message}
-        </p>
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-sm font-bold text-slate-600 dark:text-gray-400 animate-pulse tracking-wide">
+             {progress < 30 ? "Waking up server..." : message}
+          </p>
+          <span className="text-xs font-mono text-slate-400 dark:text-gray-600">
+            {Math.floor(progress)}%
+          </span>
+        </div>
       </div>
     </div>
   );
