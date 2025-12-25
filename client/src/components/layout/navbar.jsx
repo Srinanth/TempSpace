@@ -1,4 +1,3 @@
-import React from 'react';
 import { LogOut, Settings, Moon, Sun, Copy } from 'lucide-react';
 import Button from '../ui/Button';
 import { useNavbar } from '../../hooks/useNavbar';

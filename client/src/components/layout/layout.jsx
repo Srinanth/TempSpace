@@ -1,11 +1,10 @@
-import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
 const Layout = ({ children }) => {
   const { theme } = useTheme();
 
   return (
-    <div className="relative min-h-screen font-sans overflow-x-hidden transition-colors duration-500 bg-slate-50 dark:bg-[#020205]">
+    <div className="relative min-h-screen font-sans transition-colors duration-500 bg-slate-50 dark:bg-[#020205]">
       
             <div className={`fixed inset-0 z-0 pointer-events-none transition-opacity duration-700 ${theme === 'dark' ? 'opacity-100' : 'opacity-0'}`}>
           <div className="absolute inset-0 bg-[#020205]"></div>
