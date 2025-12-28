@@ -1,4 +1,3 @@
-import React from 'react';
 import { Clock, Zap, Trash2, Download, X, Shield, Calendar, Link, LogOut } from 'lucide-react';
 import Layout from '../components/layout/layout';
 import Navbar from '../components/layout/navbar';
@@ -38,15 +37,12 @@ const SpaceDashboard = () => {
         onSettings={isAdmin ? () => setShowSettings(true) : null}
       />
 
-      {/* Removed stray ']' here */}
       <main className="w-full overflow-x-hidden">
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 py-4 md:py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {/* Removed stray ']' here */}
             <div className="lg:col-span-2 space-y-4 md:space-y-6">
 
-              {/* Removed stray ']' here */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="bg-white/90 dark:bg-slate-900/60 p-3 md:p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm flex flex-row sm:flex-col justify-between sm:justify-center items-center">
                   <div className="text-[10px] md:text-xs text-slate-500 dark:text-gray-400 uppercase font-bold tracking-wider">
@@ -90,10 +86,8 @@ const SpaceDashboard = () => {
               />
             </div>
 
-            {/* Removed stray ']' here */}
             <div className="space-y-4 md:space-y-6">
 
-              {/* Removed stray ']' here */}
               <div className="bg-white/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
                 <div className="p-3 md:p-4 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
                   <h3 className="text-xs font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider">
@@ -146,7 +140,6 @@ const SpaceDashboard = () => {
                 </div>
               </div>
 
-              {/* Removed stray ']' here */}
               <div className="bg-white/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
                 <div className="p-4 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
                   <h3 className="text-xs font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider">
@@ -206,7 +199,6 @@ const SpaceDashboard = () => {
         </div>
       </main>
 
-      {/* Removed stray ']' here */}
       {previewFile && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
@@ -230,7 +222,6 @@ const SpaceDashboard = () => {
         />
       )}
 
-      {/* Removed stray '\' here */}
       <ConfirmModal
         isOpen={activeModal === 'EXTEND'}
         onClose={() => setActiveModal(null)}
