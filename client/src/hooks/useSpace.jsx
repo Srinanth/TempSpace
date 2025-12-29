@@ -41,15 +41,13 @@ export const useSpace = () => {
     if (!session.token || !session.spaceCode || visitTracked.current) return;
 
     const storageKey = `ts_visited_${session.spaceCode}`;
-    const hasVisited = sessionStorage.getItem(storageKey);
-
+    const hasVisited = localStorage.getItem(storageKey);
     if (!hasVisited) {
         visitTracked.current = true;
         
         spaceApi.trackVisit(session.token)
             .then(() => {
-                sessionStorage.setItem(storageKey, 'true');
-                
+                localStorage.setItem(storageKey, 'true');                
                 refreshSpace();
             })
             .catch(err => console.error("Visit tracking failed", err));
