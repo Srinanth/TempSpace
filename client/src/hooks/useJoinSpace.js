@@ -35,7 +35,7 @@ export const useJoinSpace = () => {
         setTimeout(() => window.location.reload(), 100);
 
     } catch(err) { 
-        const errorMessage = err.response?.data?.error || 'Server unavailable';
+        const errorMessage =  'Server unavailable';
         toast.error(errorMessage);    
     }
     setLoading(false);
